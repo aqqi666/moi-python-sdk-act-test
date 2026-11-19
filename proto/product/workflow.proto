@@ -5,7 +5,7 @@ package matrixflow.sdk.product;
 import "google/protobuf/struct.proto";
 import "google/protobuf/timestamp.proto";
 
-option go_package = "github.com/matrixorigin/matrixflow/sdk/product-model/product";
+option go_package = "github.com/matrixorigin/moi-go-sdk/product";
 
 message WorkflowSummary {
   string id = 1;

@@ -13,7 +13,7 @@ from loopback_http import loopback_proxy_environment
 class SQLStreamHTTPContractTest(unittest.TestCase):
     def test_download_and_preview_preserve_raw_bytes(self):
         self.enterContext(loopback_proxy_environment())
-        path = pathlib.Path(__file__).resolve().parents[1] / "testdata" / "sql_stream_http_contract.json"
+        path = pathlib.Path(__file__).resolve().parents[2] / "go-sdk" / "testdata" / "sql_stream_http_contract.json"
         cases = json.loads(path.read_text(encoding="utf-8"))
         current = {}
         observed = {}

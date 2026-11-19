@@ -13,7 +13,7 @@ from loopback_http import loopback_proxy_environment
 class KnowledgeCreateSpecContractTest(unittest.TestCase):
     def test_creation_controls_match_shared_handler_contract(self):
         self.enterContext(loopback_proxy_environment())
-        cases = json.loads((Path(__file__).resolve().parents[1] / "testdata/knowledge_create_spec_contract.json").read_text())
+        cases = json.loads((Path(__file__).resolve().parents[2] / "go-sdk/testdata/knowledge_create_spec_contract.json").read_text())
         current, requests = {}, []
 
         class Handler(BaseHTTPRequestHandler):

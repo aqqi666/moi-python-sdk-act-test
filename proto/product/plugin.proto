@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package matrixflow.sdk.product;
 import "google/protobuf/struct.proto";
-option go_package = "github.com/matrixorigin/matrixflow/sdk/product-model/product";
+option go_package = "github.com/matrixorigin/moi-go-sdk/product";
 
 // Product control-plane projections. Secrets and internal authorization attempts
 // are deliberately absent; credential submission is a separate request type.
@@ -68,7 +68,6 @@ message PluginCapabilityDescriptor {
   PluginMCPServer mcp_server = 5;
   repeated PluginRequirementBinding connections = 6;
 }
-message PluginSkillContent { string content = 1; }
 message PluginRelease {
   PluginPublication publication = 1;
   // Package documents are extensible contracts, not SDK-owned business models.
@@ -154,6 +153,8 @@ message PluginAuthorizationStatus {
   string account_display_name = 11;
   // Current managed login; resume through PollPluginOAuth, never start a second login.
   string attempt_id = 12;
+  // Effective provider scopes; never an access token or a MOI permission grant.
+  repeated string granted_scopes = 13;
 }
 message PluginOAuthAction {
   string attempt_id = 1;

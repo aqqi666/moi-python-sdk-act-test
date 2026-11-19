@@ -23,7 +23,7 @@ Current implementation:
 - Go and Python data-share nil-data writes now return explicit errors only for delete publish and unsubscribe.
 - Go and Python member-management nil-data writes return explicit errors for supported member create/update/delete/status and canonical role-binding updates; legacy role, grant, object-permission, and privilege-check operations are not part of the Product SDK.
 - Go and Python compute nil-data delete now returns explicit errors only while read/update/preflight/action methods keep their backend response data.
-- Workspace, account bootstrap, catalog file, catalog common small-result, connector source database list, connector file download, data-share summary/name-check, and WorkItem API service contracts are defined in `sdk/proto/product/*.proto` and generated through `sdk/Makefile` into `sdk/product-model` and `sdk/python-sdk/moi_product_sdk/_proto`.
+- Workspace, account bootstrap, catalog file, catalog common small-result, connector source database list, connector file download, data-share summary/name-check, and WorkItem API service contracts are defined in `sdk/proto/product/*.proto` and generated through `sdk/Makefile` into `sdk/go-sdk/product` and `sdk/python-sdk/moi_product_sdk/_proto`.
 - `moi-backend` auth workspace/account, catalog file, and catalog folder/tag/ref-list response handlers reuse the generated product contract for those bootstrap responses instead of hand-written duplicate response DTOs.
 - Non-app Go SDK methods outside explicit design exemptions no longer return `ProductData`; the hard maturity baseline tracks zero non-exempt findings.
 - Agent resource routes are exposed as explicit product endpoint resource calls first. They remain `backend-proxy-to-core` until backend contracts are promoted into higher-level product operations.
@@ -215,7 +215,7 @@ not replace product authorization. `AgentService.ExecutorHealth` /
 preserves optional `connected_secs` as an exact 64-bit value. The three local
 contract tests assert the complete compute event and executor authorization
 bodies, credentials and responses. The same three-client contract also covers
-edge-token check/renewal, model resolution, ordinary MCP and Skills RPC bodies,
+edge-token check/renewal, model resolution and ordinary MCP bodies,
 and exact model SSE bytes with runtime Bearer authentication. Existing Go/Python
 notification tests cover empty 202 responses and errors; the CLI now preserves
 that empty acknowledgement instead of printing `null`.
@@ -223,7 +223,7 @@ that empty acknowledgement instead of printing `null`.
 These are local protocol checks, not real runtime admission or model execution.
 The existing Go business scenarios are `TestRuntimeEdgeTokenCheckRoute`,
 `TestRuntimeEdgeTokenRenewRoute`, `TestRuntimeModelResolveRoute`,
-`TestRuntimeModelChatRoute`, `TestRuntimeMCPRoute`, `TestRuntimeSkillsRoute`,
+`TestRuntimeModelChatRoute`, `TestRuntimeMCPRoute`,
 `TestRuntimeExecutorAuthorizeRoute`, `TestComputeBindingEventRoute`, plus the
 Runner/Sandbox and terminal scenarios in `menu_agent_runtime_environments_test.go`.
 They remain the native integration acceptance layer and were not rerun by these

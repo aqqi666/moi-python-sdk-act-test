@@ -25,7 +25,7 @@ class AgentDiscoveryHTTPContractTest(unittest.TestCase):
         self._run_fixture("agent_workspace_protocol_http_contract.json")
 
     def _run_fixture(self, fixture_name):
-        fixture = Path(__file__).resolve().parents[1] / "testdata" / fixture_name
+        fixture = Path(__file__).resolve().parents[2] / "go-sdk" / "testdata" / fixture_name
         for scenario in json.loads(fixture.read_text(encoding="utf-8")):
             with self.subTest(scenario=scenario["name"]):
                 self._run_scenario(scenario)

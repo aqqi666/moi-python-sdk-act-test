@@ -15,7 +15,7 @@ from loopback_http import loopback_proxy_environment
 class ProductErrorDetailsContractTest(unittest.TestCase):
     def test_errors_match_shared_owner_details_contract(self):
         self.enterContext(loopback_proxy_environment())
-        cases = json.loads((Path(__file__).resolve().parents[1] / "testdata/product_error_details_contract.json").read_text())
+        cases = json.loads((Path(__file__).resolve().parents[2] / "go-sdk/testdata/product_error_details_contract.json").read_text())
         current, requests = {}, []
 
         class Handler(BaseHTTPRequestHandler):

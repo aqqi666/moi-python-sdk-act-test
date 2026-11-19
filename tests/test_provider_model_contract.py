@@ -7,7 +7,7 @@ import moi_product_sdk as sdk
 import moi_product_sdk.client as sdk_client
 
 
-_FIXTURE_DIR = pathlib.Path(__file__).resolve().parents[1] / "testdata"
+_FIXTURE_DIR = pathlib.Path(__file__).resolve().parents[2] / "go-sdk" / "testdata"
 
 
 # Product SDK parses with json_format.ParseDict(ignore_unknown_fields=False).

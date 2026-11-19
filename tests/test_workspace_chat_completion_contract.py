@@ -15,7 +15,7 @@ class WorkspaceChatCompletionContractTest(unittest.TestCase):
         self.enterContext(loopback_proxy_environment())
 
     def test_shared_request_and_stream_contract(self):
-        fixture = json.loads(Path("testdata/workspace_chat_completion_contract.json").read_text())
+        fixture = json.loads(Path("../go-sdk/testdata/workspace_chat_completion_contract.json").read_text())
         bodies = []
 
         class Handler(BaseHTTPRequestHandler):

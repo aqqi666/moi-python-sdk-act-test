@@ -24,7 +24,7 @@ class IAMWriteHTTPContractTest(unittest.TestCase):
         self.assertEqual(_path_id("$&+:=@/?#"), "$&+:=@%2F%3F%23")
 
     def test_shared_http_contracts(self):
-        cases = json.loads(Path("testdata/iam_write_http_contract.json").read_text())
+        cases = json.loads(Path("../go-sdk/testdata/iam_write_http_contract.json").read_text())
         for scenario in cases:
             with self.subTest(scenario=scenario["name"]):
                 self._run_scenario(scenario)

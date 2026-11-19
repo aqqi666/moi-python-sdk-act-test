@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package matrixflow.sdk.product;
 
-option go_package = "github.com/matrixorigin/matrixflow/sdk/product-model/product";
+option go_package = "github.com/matrixorigin/moi-go-sdk/product";
 
 message AuditOperationLog {
   string id = 1;

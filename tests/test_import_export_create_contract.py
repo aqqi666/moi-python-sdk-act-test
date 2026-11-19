@@ -8,7 +8,7 @@ import moi_product_sdk as sdk
 from loopback_http import loopback_proxy_environment
 
 
-_FIXTURE = pathlib.Path(__file__).resolve().parents[1] / "testdata" / "import_export_create_contract.json"
+_FIXTURE = pathlib.Path(__file__).resolve().parents[2] / "go-sdk" / "testdata" / "import_export_create_contract.json"
 
 
 class ImportExportCreateContractTest(unittest.TestCase):

@@ -75,7 +75,7 @@ class RuntimeGatewayContractTest(unittest.TestCase):
         self.assertEqual(requests[2][2:], ("user-key", "workspace-1", None))
 
 
-    def test_edge_model_rpc_skills_and_stream(self):
+    def test_edge_model_rpc_and_stream(self):
         requests = []
         stream_bytes = b'data: {"choices":[]}\n\ndata: [DONE]\n\n'
 
@@ -91,7 +91,6 @@ class RuntimeGatewayContractTest(unittest.TestCase):
                     "/newmoi/edge-tokens/renew": (200, {"code": 0, "data": {"token": "fresh-edge", "expires_at": "2026-11-10T03:00:00Z"}}),
                     "/api/v1/models/resolve": (200, {"model": "model-1", "status": "ready", "protocol": "openai", "invoke": {"url": "http://model.test/v1"}}),
                     "/api/v1/mcp/http": (200, {"jsonrpc": "2.0", "id": "rpc-1", "result": {"tools": []}}),
-                    "/api/v1/skills/http": (200, {"jsonrpc": "2.0", "id": "rpc-1", "result": {"content": "skill-body"}}),
                 }
                 if self.path == "/api/v1/models/openai/chat/completions":
                     self.send_response(200)
@@ -123,24 +122,19 @@ class RuntimeGatewayContractTest(unittest.TestCase):
         rpc.id.string_value = "rpc-1"
         rpc.params.update({"cursor": "next"})
         self.assertIn("tools", gateway.mcp(rpc).result.fields)
-        skills = sdk.RuntimeRPCRequest(jsonrpc="2.0", method="skills/read")
-        skills.id.string_value = "rpc-1"
-        skills.params.update({"path": "SKILL.md"})
-        self.assertEqual(gateway.skills(skills).result.fields["content"].string_value, "skill-body")
         stream = gateway.invoke_model({"model": "model-1", "messages": [{"role": "user", "content": "hello"}], "stream": True})
         self.assertEqual(stream.read(), stream_bytes)
         stream.close()
         self.assertEqual([item[0] for item in requests], [
             "/api/v1/astra/edge-tokens/check", "/newmoi/edge-tokens/renew", "/api/v1/models/resolve",
-            "/api/v1/mcp/http", "/api/v1/skills/http", "/api/v1/models/openai/chat/completions",
+            "/api/v1/mcp/http", "/api/v1/models/openai/chat/completions",
         ])
         self.assertTrue(all(item[1] == "Bearer runtime-grant" for item in requests))
         self.assertEqual(requests[0][2], {"token": "edge-registration"})
         self.assertEqual(requests[1][2], {"token": "edge-registration"})
         self.assertEqual(requests[2][2], {"model": "model-1", "gateway": "control-plane"})
         self.assertEqual(requests[3][2], {"jsonrpc": "2.0", "id": "rpc-1", "method": "tools/list", "params": {"cursor": "next"}})
-        self.assertEqual(requests[4][2], {"jsonrpc": "2.0", "id": "rpc-1", "method": "skills/read", "params": {"path": "SKILL.md"}})
-        self.assertEqual(requests[5][2], {"model": "model-1", "messages": [{"role": "user", "content": "hello"}], "stream": True})
+        self.assertEqual(requests[4][2], {"model": "model-1", "messages": [{"role": "user", "content": "hello"}], "stream": True})
 
 
 if __name__ == "__main__":

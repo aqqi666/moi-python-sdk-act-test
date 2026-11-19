@@ -13,7 +13,7 @@ from loopback_http import loopback_proxy_environment
 class WorkflowTemplateOptionsContractTest(unittest.TestCase):
     def test_requests_responses_and_owner_errors_match_shared_handler_contract(self):
         self.enterContext(loopback_proxy_environment())
-        cases = json.loads((Path(__file__).resolve().parents[1] / "testdata/workflow_template_options_contract.json").read_text())
+        cases = json.loads((Path(__file__).resolve().parents[2] / "go-sdk/testdata/workflow_template_options_contract.json").read_text())
         current, requests = {}, []
 
         class Handler(BaseHTTPRequestHandler):

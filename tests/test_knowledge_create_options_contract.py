@@ -11,7 +11,7 @@ from loopback_http import loopback_proxy_environment
 class KnowledgeCreateOptionsContractTest(unittest.TestCase):
     def test_catalog_and_source_selection_match_owner_contract(self):
         self.enterContext(loopback_proxy_environment())
-        path = pathlib.Path(__file__).resolve().parents[1] / "testdata" / "knowledge_create_options_contract.json"
+        path = pathlib.Path(__file__).resolve().parents[2] / "go-sdk" / "testdata" / "knowledge_create_options_contract.json"
         cases = json.loads(path.read_text(encoding="utf-8"))
         requests = []
         current = {}

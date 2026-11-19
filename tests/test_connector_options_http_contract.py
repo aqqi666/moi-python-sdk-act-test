@@ -51,7 +51,7 @@ class ConnectorOptionsHTTPContractTest(unittest.TestCase):
     def test_shared_http_contracts(self):
         self.enterContext(loopback_proxy_environment())
         for fixture_name in ("connector_options_http_contract.json", "connector_core_http_contract.json", "connector_structured_http_contract.json", "connector_rest_http_contract.json", "import_export_lifecycle_http_contract.json"):
-            fixture = Path(__file__).resolve().parents[1] / "testdata" / fixture_name
+            fixture = Path(__file__).resolve().parents[2] / "go-sdk" / "testdata" / fixture_name
             for scenario in json.loads(fixture.read_text(encoding="utf-8")):
                 with self.subTest(scenario=scenario["name"]):
                     self._run_scenario(scenario)

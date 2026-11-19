@@ -17,7 +17,7 @@ from loopback_http import loopback_proxy_environment
 class MiscManagementHTTPContractTest(unittest.TestCase):
     def test_json_multipart_and_stream_contracts(self):
         self.enterContext(loopback_proxy_environment())
-        path = pathlib.Path(__file__).resolve().parents[1] / "testdata" / "misc_management_http_contract.json"
+        path = pathlib.Path(__file__).resolve().parents[2] / "go-sdk" / "testdata" / "misc_management_http_contract.json"
         cases = json.loads(path.read_text(encoding="utf-8"))
         current = {}
         observed = {}

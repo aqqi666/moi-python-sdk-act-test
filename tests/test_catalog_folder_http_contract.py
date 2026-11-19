@@ -14,7 +14,7 @@ class CatalogFolderHTTPContractTest(unittest.TestCase):
     def test_shared_http_contracts(self):
         self.enterContext(loopback_proxy_environment())
         for fixture_name in ("catalog_folder_http_contract.json", "catalog_info_http_contract.json", "catalog_data_asset_http_contract.json", "catalog_table_http_contract.json", "catalog_file_http_contract.json", "catalog_core_http_contract.json"):
-            fixture = Path(__file__).resolve().parents[1] / "testdata" / fixture_name
+            fixture = Path(__file__).resolve().parents[2] / "go-sdk" / "testdata" / fixture_name
             for scenario in json.loads(fixture.read_text(encoding="utf-8")):
                 with self.subTest(scenario=scenario["name"]):
                     self._run_scenario(scenario)

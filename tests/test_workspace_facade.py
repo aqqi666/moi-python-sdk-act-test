@@ -927,7 +927,7 @@ class _Handler(BaseHTTPRequestHandler):
                 self.send_response(400)
                 self.send_header("Content-Type", "application/json")
                 self.end_headers()
-                self.wfile.write(json.dumps({"code": "INVALID_ARGUMENT", "msg": "name is required"}).encode("utf-8"))
+                self.wfile.write(json.dumps({"code": "ErrParamInvalid", "msg": "name is required"}).encode("utf-8"))
                 return
             self._json({"code": "OK", "msg": "OK", "data": {"id": 7}})
             return
@@ -1172,7 +1172,7 @@ class _Handler(BaseHTTPRequestHandler):
             return
         if self.path == "/newmoi/user/create":
             if isinstance(body, dict) and body.get("name") == "unknown":
-                self._json({"code": "USER_NOT_FOUND", "msg": "Invitation account not found"}, status=404)
+                self._json({"code": "ErrUserNotFound", "msg": "Invitation account not found"}, status=404)
                 return
             self._json({"code": "OK", "msg": "OK", "data": {"id": "canonical-user-2"}})
             return
@@ -2229,7 +2229,7 @@ class WorkspaceFacadeTest(unittest.TestCase):
         self.assertEqual(missing_role.exception.code, "ErrDefaultRoleRequired")
         with self.assertRaises(sdk.Error) as unknown:
             workspace.invite_member("unknown", 10, sdk.with_user_github_login("new-user"), sdk.with_user_role_ids(10))
-        self.assertEqual(unknown.exception.code, "USER_NOT_FOUND")
+        self.assertEqual(unknown.exception.code, "ErrUserNotFound")
         self.assertEqual(unknown.exception.status, 404)
         self.assertEqual(unknown.exception.message, "Invitation account not found")
         self.assertEqual(
@@ -3117,6 +3117,60 @@ class WorkspaceFacadeTest(unittest.TestCase):
             node.block("")
         self.assertEqual(node_block_error.exception.code, "ErrIDRequired")
 
+    def test_custom_operator_spec_body_includes_complete_create_contract(self):
+        spec = sdk.CustomOperatorSpec(
+            "Text Counter",
+            "text_counter",
+            "Count text length",
+            {"type": "object"},
+            {"type": "object"},
+            node_id="node-spec",
+            kind="python",
+            language="python",
+            handler="handle",
+            version="v1",
+            isolation_level="process",
+            enabled=False,
+            code="def handle(workspace_id, sdk, input): return input",
+            source_file_id="source-spec",
+            base_node_id="base-spec",
+            base_node_version="v0",
+            binding_config={"runtime": "sandbox"},
+            catalog_id=11,
+            database_id=22,
+        )
+        expected = {
+            "name": "Text Counter",
+            "identifier": "text_counter",
+            "description": "Count text length",
+            "input_schema": {"type": "object"},
+            "output_schema": {"type": "object"},
+            "node_id": "node-spec",
+            "kind": "python",
+            "language": "python",
+            "handler": "handle",
+            "version": "v1",
+            "isolation_level": "process",
+            "enabled": False,
+            "code": "def handle(workspace_id, sdk, input): return input",
+            "source_file_id": "source-spec",
+            "base_node_id": "base-spec",
+            "base_node_version": "v0",
+            "binding_config": {"runtime": "sandbox"},
+            "catalog_id": 11,
+            "database_id": 22,
+        }
+        self.assertEqual(spec.body(()), expected)
+
+        body = spec.body((
+            sdk.with_custom_operator_language("python-option"),
+            sdk.with_custom_operator_enabled(True),
+            sdk.with_custom_operator_catalog_id(33),
+        ))
+        self.assertEqual(body["language"], "python-option")
+        self.assertIs(body["enabled"], True)
+        self.assertEqual(body["catalog_id"], 33)
+
     def test_workspace_workflow_design_handles_scope_operators_and_templates(self):
         client = sdk.Client(f"http://127.0.0.1:{self.server.server_port}/newmoi", sdk.with_api_key("user-key"))
 
@@ -3234,7 +3288,19 @@ class WorkspaceFacadeTest(unittest.TestCase):
         self.assertEqual(spec_output_error.exception.code, "ErrOutputSchemaRequired")
         with self.assertRaises(sdk.Error) as test_input_error:
             operator.test_with_input(sdk.CustomOperatorTestInput(None))
-        self.assertEqual(test_input_error.exception.code, "ErrInputSchemaRequired")
+        self.assertEqual(test_input_error.exception.code, "ErrPayloadRequired")
+        with self.assertRaises(sdk.Error) as result_workflow_error:
+            workspace.workflows().get_run_result("", "exec-1")
+        self.assertEqual(result_workflow_error.exception.code, "ErrWorkflowIDRequired")
+        with self.assertRaises(sdk.Error) as result_execution_error:
+            workspace.workflows().get_run_result("wf-1", "")
+        self.assertEqual(result_execution_error.exception.code, "ErrExecutionIDRequired")
+        with self.assertRaises(sdk.Error) as result_by_id_error:
+            workspace.workflows().get_run_result_by_id("")
+        self.assertEqual(result_by_id_error.exception.code, "ErrExecutionIDRequired")
+        with self.assertRaises(sdk.Error) as result_status_error:
+            workspace.workflows().get_run_result_status("", "exec-1")
+        self.assertEqual(result_status_error.exception.code, "ErrWorkflowIDRequired")
         with self.assertRaises(sdk.Error) as template_error:
             workspace.workflow_template("")
         self.assertEqual(template_error.exception.code, "ErrIDRequired")
@@ -3312,6 +3378,56 @@ class WorkspaceFacadeTest(unittest.TestCase):
         with self.assertRaises(sdk.Error) as invoke_payload_error:
             service.invoke(sdk.WorkitemAPIServiceInvokeSpec("operator-api-abc", "operator", "v1", None))
         self.assertEqual(invoke_payload_error.exception.code, "ErrPayloadRequired")
+
+    def test_workitem_api_service_invoke_validation_details(self):
+        cases = [
+            (
+                "service name",
+                sdk.WorkitemAPIServiceInvokeSpec("", "operator", "v1", {}),
+                "ErrServiceNameRequired",
+                "service_name",
+                "required",
+                "",
+                "published service.service_name",
+            ),
+            (
+                "type",
+                sdk.WorkitemAPIServiceInvokeSpec("service", "", "v1", {}),
+                "ErrTypeRequired",
+                "type",
+                "required",
+                "operator",
+                'use "operator"',
+            ),
+            (
+                "version",
+                sdk.WorkitemAPIServiceInvokeSpec("service", "operator", "", {}),
+                "ErrVersionRequired",
+                "version",
+                "required",
+                "",
+                "published service.version",
+            ),
+            (
+                "payload",
+                sdk.WorkitemAPIServiceInvokeSpec("service", "operator", "v1", None),
+                "ErrPayloadRequired",
+                "payload",
+                "required",
+                "",
+                "not an input wrapper",
+            ),
+        ]
+        for name, spec, code, field, reason, expected, message in cases:
+            with self.subTest(name=name):
+                with self.assertRaises(sdk.Error) as raised:
+                    spec.validate()
+                self.assertEqual(raised.exception.code, code)
+                self.assertIn(message, raised.exception.message)
+                self.assertEqual(raised.exception.details["field"], field)
+                self.assertEqual(raised.exception.details["reason"], reason)
+                if expected:
+                    self.assertEqual(raised.exception.details["expected"], expected)
 
     def test_workspace_semantic_model_handle_scopes_entries(self):
         client = sdk.Client(f"http://127.0.0.1:{self.server.server_port}/newmoi", sdk.with_api_key("user-key"))
@@ -3639,7 +3755,9 @@ class WorkspaceFacadeTest(unittest.TestCase):
         client = sdk.Client(f"http://127.0.0.1:{self.server.server_port}/newmoi", sdk.with_api_key("user-key"))
         knowledge = client.knowledge("ws-created")
 
-        all_sources = knowledge.list_sources("101")
+        # SemanticModelInfo.id is int64; passing it directly must not leak
+        # urllib.parse.quote type errors from URL path construction.
+        all_sources = knowledge.list_sources(101)
         page = knowledge.list_sources_page("101", 2, 20)
 
         self.assertEqual(all_sources.total, 21)

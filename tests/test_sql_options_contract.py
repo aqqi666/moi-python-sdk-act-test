@@ -16,7 +16,7 @@ class SQLOptionsContractTest(unittest.TestCase):
         self.enterContext(loopback_proxy_environment())
 
     def test_requests_and_responses_match_shared_handler_contract(self):
-        cases = json.loads((Path(__file__).resolve().parents[1] / "testdata/sql_options_contract.json").read_text())
+        cases = json.loads((Path(__file__).resolve().parents[2] / "go-sdk/testdata/sql_options_contract.json").read_text())
         current = {}
         requests = []
 

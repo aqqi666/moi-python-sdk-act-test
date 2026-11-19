@@ -15,7 +15,7 @@ from loopback_http import loopback_proxy_environment
 class AgentSkillSpecialHTTPContractTest(unittest.TestCase):
     def test_special_contracts(self):
         self.enterContext(loopback_proxy_environment())
-        fixture = Path(__file__).resolve().parents[1] / "testdata" / "agent_skill_special_http_contract.json"
+        fixture = Path(__file__).resolve().parents[2] / "go-sdk" / "testdata" / "agent_skill_special_http_contract.json"
         for scenario in json.loads(fixture.read_text(encoding="utf-8")):
             with self.subTest(scenario=scenario["name"]):
                 self._run_scenario(scenario)
@@ -72,7 +72,6 @@ class AgentSkillSpecialHTTPContractTest(unittest.TestCase):
                 self.end_headers()
                 self.wfile.write(payload)
 
-            do_GET = _handle
             do_POST = _handle
 
         server = HTTPServer(("127.0.0.1", 0), Handler)
@@ -93,8 +92,6 @@ class AgentSkillSpecialHTTPContractTest(unittest.TestCase):
             result = service.import_skill_package(scenario["filename"], file, **kwargs)
         elif operation == "polish_skill_stream":
             stream = service.polish_skill_stream(scenario["input"]["body"])
-        elif operation == "download_skill_files":
-            stream = service.download_skill_files(scenario["skill_id"])
         else:
             self.fail(f"unknown operation {operation}")
 
@@ -116,9 +113,6 @@ class AgentSkillSpecialHTTPContractTest(unittest.TestCase):
             self.assertEqual(observed["content_type"], "application/json")
             self.assertEqual(observed["accept"], "text/event-stream")
             self.assertEqual(json.loads(observed["body"]), scenario["request"])
-        else:
-            self.assertEqual(observed["accept"], "*/*")
-            self.assertEqual(observed["body"], b"")
         if stream is not None:
             try:
                 if "response_base64" in scenario:

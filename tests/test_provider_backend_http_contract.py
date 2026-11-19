@@ -142,7 +142,7 @@ def call_typed(client, scenario):
 class ProviderBackendHTTPContractTest(unittest.TestCase):
     def test_provider_backend_contracts(self):
         self.enterContext(loopback_proxy_environment())
-        path = pathlib.Path(__file__).resolve().parents[1] / "testdata" / "provider_backend_http_contract.json"
+        path = pathlib.Path(__file__).resolve().parents[2] / "go-sdk" / "testdata" / "provider_backend_http_contract.json"
         cases = json.loads(path.read_text(encoding="utf-8"))
         self.assertEqual(len(cases), 37)
         current = {}

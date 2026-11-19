@@ -13,7 +13,7 @@ from loopback_http import loopback_proxy_environment
 class AgentPackageHTTPContractTest(unittest.TestCase):
     def test_shared_http_contracts(self):
         self.enterContext(loopback_proxy_environment())
-        fixture = Path(__file__).resolve().parents[1] / "testdata/agent_package_http_contract.json"
+        fixture = Path(__file__).resolve().parents[2] / "go-sdk/testdata/agent_package_http_contract.json"
         for scenario in json.loads(fixture.read_text(encoding="utf-8")):
             with self.subTest(scenario=scenario["name"]):
                 self._run_scenario(scenario)

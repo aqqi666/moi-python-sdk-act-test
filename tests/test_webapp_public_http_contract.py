@@ -13,7 +13,7 @@ from loopback_http import loopback_proxy_environment
 class WebappPublicHTTPContractTest(unittest.TestCase):
     def test_shared_http_contracts(self):
         self.enterContext(loopback_proxy_environment())
-        cases = json.loads(Path("testdata/webapp_public_http_contract.json").read_text())
+        cases = json.loads(Path("../go-sdk/testdata/webapp_public_http_contract.json").read_text())
         for scenario in cases:
             with self.subTest(scenario=scenario["name"]):
                 self._run_scenario(scenario)

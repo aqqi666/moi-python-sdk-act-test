@@ -11,7 +11,7 @@ from loopback_http import loopback_proxy_environment
 class CatalogNavigationContractTest(unittest.TestCase):
     def test_requests_match_shared_go_and_cli_contract(self):
         self.enterContext(loopback_proxy_environment())
-        fixture = pathlib.Path(__file__).resolve().parents[1] / "testdata" / "catalog_navigation_contract.json"
+        fixture = pathlib.Path(__file__).resolve().parents[2] / "go-sdk" / "testdata" / "catalog_navigation_contract.json"
         cases = json.loads(fixture.read_text(encoding="utf-8"))
         requests = []
         current = {}

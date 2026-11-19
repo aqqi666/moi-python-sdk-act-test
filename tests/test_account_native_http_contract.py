@@ -14,7 +14,7 @@ from loopback_http import loopback_proxy_environment
 class AccountNativeHTTPContractTest(unittest.TestCase):
     def test_native_bootstrap_matches_shared_handler_contract(self):
         self.enterContext(loopback_proxy_environment())
-        path = pathlib.Path(__file__).resolve().parents[1] / "testdata" / "account_native_http_contract.json"
+        path = pathlib.Path(__file__).resolve().parents[2] / "go-sdk" / "testdata" / "account_native_http_contract.json"
         cases = json.loads(path.read_text(encoding="utf-8"))
         current = {}
         observed = {}

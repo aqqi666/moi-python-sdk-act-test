@@ -2,7 +2,7 @@ syntax = "proto3";
 package matrixflow.sdk.product;
 import "google/protobuf/struct.proto";
 import "product/sql.proto";
-option go_package = "github.com/matrixorigin/matrixflow/sdk/product-model/product";
+option go_package = "github.com/matrixorigin/moi-go-sdk/product";
 
 message TaskExecutionOverviewResult {
   int64 running = 1;

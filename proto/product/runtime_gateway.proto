@@ -1,6 +1,6 @@
 syntax = "proto3";
 package matrixflow.sdk.product;
-option go_package = "github.com/matrixorigin/matrixflow/sdk/product-model/product";
+option go_package = "github.com/matrixorigin/moi-go-sdk/product";
 import "google/protobuf/struct.proto";
 
 message RuntimeEdgeTokenRequest {string token=1;}

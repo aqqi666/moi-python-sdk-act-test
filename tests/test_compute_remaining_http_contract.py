@@ -117,7 +117,7 @@ class ComputeRemainingHTTPContractTest(unittest.TestCase):
 
     def test_typed_compute_routes(self):
         self.enterContext(loopback_proxy_environment())
-        path = pathlib.Path(__file__).resolve().parents[1] / "testdata" / "compute_remaining_http_contract.json"
+        path = pathlib.Path(__file__).resolve().parents[2] / "go-sdk" / "testdata" / "compute_remaining_http_contract.json"
         cases = json.loads(path.read_text(encoding="utf-8"))
         self.assertEqual(len(cases), 20)
         current = {}

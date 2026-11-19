@@ -17,7 +17,7 @@ class SQLRemainingHTTPContractTest(unittest.TestCase):
     def test_requests_and_responses_match_shared_handler_contract(self):
         self.enterContext(loopback_proxy_environment())
         cases = json.loads(
-            (Path(__file__).resolve().parents[1] / "testdata" / "sql_remaining_http_contract.json").read_text()
+            (Path(__file__).resolve().parents[2] / "go-sdk" / "testdata" / "sql_remaining_http_contract.json").read_text()
         )
         self.assertEqual(len(cases), 22)
         current = {}

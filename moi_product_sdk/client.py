@@ -115,7 +115,7 @@ from ._proto.product.agent_pb2 import (
 )
 from ._proto.product.plugin_pb2 import (
     PluginPublication, PluginPublicationList, PluginRelease, PluginDiscoveryPage,
-    PluginCapabilityDescriptor, PluginSkillContent, PluginInstallation,
+    PluginCapabilityDescriptor, PluginInstallation,
     PluginInstallationList, PluginInstallationBinding, PluginConnection,
     PluginConnectionList, PluginAuthorizationStatus, PluginOAuthAction,
     PluginOAuthProgress, PluginMutationResult, PluginInstallRequest,
@@ -513,6 +513,8 @@ from .errors import (
     ErrTableScopeRequired,
     ErrPathInvalid,
     ErrPayloadRequired,
+    ErrWorkflowIDRequired,
+    ErrExecutionIDRequired,
     ErrProviderRequired,
     ErrAddressRequired,
     ErrAPIKeyRequired,
@@ -3298,12 +3300,41 @@ class CustomOperatorSpec:
         description: str,
         input_schema: dict[str, Any],
         output_schema: dict[str, Any],
+        *,
+        node_id: Optional[str] = None,
+        kind: Optional[str] = None,
+        language: Optional[str] = None,
+        handler: Optional[str] = None,
+        version: Optional[str] = None,
+        isolation_level: Optional[str] = None,
+        enabled: Optional[bool] = None,
+        code: Optional[str] = None,
+        source_file_id: Optional[str] = None,
+        base_node_id: Optional[str] = None,
+        base_node_version: Optional[str] = None,
+        binding_config: Any = None,
+        catalog_id: Optional[int] = None,
+        database_id: Optional[int] = None,
     ) -> None:
         self.name = name
         self.identifier = identifier
         self.description = description
         self.input_schema = input_schema
         self.output_schema = output_schema
+        self.node_id = node_id
+        self.kind = kind
+        self.language = language
+        self.handler = handler
+        self.version = version
+        self.isolation_level = isolation_level
+        self.enabled = enabled
+        self.code = code
+        self.source_file_id = source_file_id
+        self.base_node_id = base_node_id
+        self.base_node_version = base_node_version
+        self.binding_config = binding_config
+        self.catalog_id = catalog_id
+        self.database_id = database_id
 
     def validate(self) -> None:
         if not self.name:
@@ -3317,6 +3348,10 @@ class CustomOperatorSpec:
         if self.output_schema is None:
             raise ErrOutputSchemaRequired
 
+    def body(self, opts: tuple[Callable[["CustomOperatorOptions"], None], ...]) -> dict[str, Any]:
+        self.validate()
+        return _custom_operator_body(self, opts)
+
 class CustomOperatorTestInput:
     def __init__(self, input: dict[str, Any], wait_timeout_seconds: Optional[int] = None) -> None:
         self.input = input
@@ -3324,7 +3359,7 @@ class CustomOperatorTestInput:
 
     def validate(self) -> None:
         if self.input is None:
-            raise ErrInputSchemaRequired
+            raise ErrPayloadRequired
 
 class WorkitemAPIServicePublishSpec:
     def __init__(
@@ -3366,6 +3401,12 @@ class WorkitemAPIServicePublishSpec:
             body["ui_resource"] = self.ui_resource
         return body
 
+def _workitem_api_service_invoke_validation_error(sentinel: Error, message: str, field: str, reason: str, expected: str = "") -> Error:
+    details = {"field": field, "reason": reason}
+    if expected:
+        details["expected"] = expected
+    return Error(sentinel.code, message, details=details)
+
 class WorkitemAPIServiceInvokeSpec:
     def __init__(self, service_name: str, type: str, version: str, payload: Any) -> None:
         self.service_name = service_name
@@ -3375,13 +3416,34 @@ class WorkitemAPIServiceInvokeSpec:
 
     def validate(self) -> None:
         if not self.service_name:
-            raise ErrServiceNameRequired
+            raise _workitem_api_service_invoke_validation_error(
+                ErrServiceNameRequired,
+                "service_name is required for WorkItem API service invocation; use the published service.service_name",
+                "service_name",
+                "required",
+            )
         if not self.type:
-            raise ErrTypeRequired
+            raise _workitem_api_service_invoke_validation_error(
+                ErrTypeRequired,
+                'type is required for WorkItem API service invocation; use "operator"',
+                "type",
+                "required",
+                "operator",
+            )
         if not self.version:
-            raise ErrVersionRequired
+            raise _workitem_api_service_invoke_validation_error(
+                ErrVersionRequired,
+                "version is required for WorkItem API service invocation; use the published service.version",
+                "version",
+                "required",
+            )
         if self.payload is None:
-            raise ErrPayloadRequired
+            raise _workitem_api_service_invoke_validation_error(
+                ErrPayloadRequired,
+                "payload is required for WorkItem API service invocation; provide the business input object, not an input wrapper",
+                "payload",
+                "required",
+            )
 
     def body(self) -> dict[str, Any]:
         self.validate()
@@ -4669,7 +4731,7 @@ class ComputePyDepsLimits:
     """Read-only projection of the py_deps.* runtime dynamic config (GET /compute-resources/py-deps-limits).
 
     Served as raw DTO JSON (no proto message). enabled=False (or the backend's
-    503 LIMITS_UNAVAILABLE surfaced as an Error) means the feature is off.
+    503 ErrLimitsUnavailable surfaced as an Error) means the feature is off.
     """
     enabled: bool = False
     max_bytes: int = 0
@@ -5636,9 +5698,6 @@ class RuntimeGatewayService:
             _notify_runtime_mcp(self._client, self._client._native_url("/api/v1/mcp/http"), request)
             return None
         return _product_message(self._call("/api/v1/mcp/http", request), RuntimeRPCResponse(), "runtime MCP")
-
-    def skills(self, request: RuntimeRPCRequest) -> RuntimeRPCResponse:
-        return _product_message(self._call("/api/v1/skills/http", request), RuntimeRPCResponse(), "runtime skills")
 
     def authorize_executor(self, request: RuntimeExecutorAuthorizationRequest) -> None:
         self._call("/api/v1/runtime-executors/authorize", request)
@@ -6976,11 +7035,11 @@ class KnowledgeService(WorkspaceScopedService):
             )
         )
 
-    def list_sources(self, model_id: str, *opts: Callable[['QueryOptions'], None]) -> SemanticModelSourceListResult:
+    def list_sources(self, model_id: str | int, *opts: Callable[['QueryOptions'], None]) -> SemanticModelSourceListResult:
         path = _with_query(f"/semantic-models/{_path_id(model_id)}/sources", opts)
         return _semantic_model_source_list_result(self._request("GET", path))
 
-    def list_sources_page(self, model_id: str, page: int, page_size: int, *opts: Callable[['QueryOptions'], None]) -> SemanticModelSourceListResult:
+    def list_sources_page(self, model_id: str | int, page: int, page_size: int, *opts: Callable[['QueryOptions'], None]) -> SemanticModelSourceListResult:
         path = _with_query(
             f"/semantic-models/{_path_id(model_id)}/sources",
             (with_page(page), with_page_size(page_size), *opts),
@@ -7604,13 +7663,13 @@ class WorkflowService(WorkspaceScopedService):
         )
 
     def get_run_result(self, workflow_id: str, execution_id: str) -> WorkflowExecutionResultEnvelope:
-        workflow_path, execution_path = _workflow_run_path(workflow_id, execution_id)
+        workflow_path, execution_path = _workflow_run_result_path(workflow_id, execution_id)
         return _workflow_execution_result_envelope(
             self._request("GET", f"/workflow/v2/workflow-apps/{workflow_path}/executions/{execution_path}/result")
         )
 
     def get_run_result_status(self, workflow_id: str, execution_id: str) -> ProductResult:
-        workflow_path, execution_path = _workflow_run_path(workflow_id, execution_id)
+        workflow_path, execution_path = _workflow_run_result_path(workflow_id, execution_id)
         return self._client._product_result(
             "GET",
             f"/workflow/v2/workflow-apps/{workflow_path}/executions/{execution_path}/result",
@@ -7618,6 +7677,8 @@ class WorkflowService(WorkspaceScopedService):
         )
 
     def get_run_result_by_id(self, execution_id: str) -> WorkflowExecutionResultEnvelope:
+        if not execution_id:
+            raise ErrExecutionIDRequired
         return _workflow_execution_result_envelope(
             self._request("GET", f"/workflow/v2/workflow-apps/executions/{_path_id(execution_id)}/result")
         )
@@ -7881,7 +7942,7 @@ class WorkflowService(WorkspaceScopedService):
             self._request(
                 "POST",
                 "/workflow/v2/custom-operators",
-                _custom_operator_body(spec.name, spec.identifier, spec.description, spec.input_schema, spec.output_schema, opts),
+                spec.body(opts),
             )
         )
 
@@ -8239,10 +8300,6 @@ class AgentService(WorkspaceScopedService):
         value = self._resource("GET", "plugin-discovery", "/describe", None, (with_query_param("ref", ref),), require_envelope=True)
         return _product_message(value, PluginCapabilityDescriptor(), "plugin capability")
 
-    def read_plugin_skill(self, ref: str, path: str) -> PluginSkillContent:
-        value = self._resource("GET", "plugin-discovery", "/skill", None, (with_query_param("ref", ref), with_query_param("path", path)), require_envelope=True)
-        return _product_message(value, PluginSkillContent(), "plugin skill")
-
     def list_plugin_releases(self, *opts: Callable[["QueryOptions"], None]) -> PluginPublicationList:
         """Supply namespace=system or workspace through query options."""
         return _product_message(self._resource("GET", "plugin-releases", "", None, opts, require_envelope=True), PluginPublicationList(), "plugin releases")
@@ -8534,11 +8591,6 @@ class AgentService(WorkspaceScopedService):
                 (with_query_param("path", path),),
             ),
         )
-
-    def download_skill_files(self, skill_id: str) -> StreamResponse:
-        """Download task-frozen Skill files as ZIP; requires runtime proof and API key."""
-        return self._download("GET", _agent_resource_path(
-            self._workspace_id, "skills", f"/{_path_id(skill_id)}/runtime-files"))
 
     def polish_skill_stream(self, draft: dict[str, Any]) -> StreamResponse:
         """Open the skill polishing SSE stream for the supplied draft."""
@@ -13890,23 +13942,28 @@ def _workflow_scratch_scope_body(request: WorkflowScratchScope) -> dict[str, Any
     return body
 
 def _custom_operator_body(
-    name: str,
-    identifier: str,
-    description: str,
-    input_schema: Any,
-    output_schema: Any,
+    spec: CustomOperatorSpec,
     opts: tuple[Callable[[CustomOperatorOptions], None], ...],
 ) -> dict[str, Any]:
     options = CustomOperatorOptions()
     for opt in opts:
         opt(options)
     body: dict[str, Any] = {
-        "name": name,
-        "identifier": identifier,
-        "description": description,
-        "input_schema": input_schema,
-        "output_schema": output_schema,
+        "name": spec.name,
+        "identifier": spec.identifier,
+        "description": spec.description,
+        "input_schema": spec.input_schema,
+        "output_schema": spec.output_schema,
     }
+    for name in (
+        "node_id", "kind", "language", "handler", "version", "isolation_level", "enabled", "code",
+        "source_file_id", "base_node_id", "base_node_version", "binding_config", "catalog_id", "database_id",
+    ):
+        value = getattr(spec, name)
+        if value is not None:
+            body[name] = value
+    # Explicit function options override spec fields, including explicit empty
+    # values, matching the Go SDK and CLI flag-over-JSON behavior.
     if options.node_id is not None:
         body["node_id"] = options.node_id
     if options.kind is not None:
@@ -14513,12 +14570,18 @@ def _with_query(path: str, opts: tuple[Callable[[QueryOptions], None], ...]) -> 
             pairs.append((key, value))
     return path + "?" + urllib.parse.urlencode(pairs)
 
-def _path_id(value: str) -> str:
+def _path_id(value: str | int) -> str:
     if not value:
         raise ErrIDRequired
+    if isinstance(value, bool) or not isinstance(value, (str, int)):
+        raise Error(
+            "ErrIDInvalid",
+            "id must be a string or integer",
+            details={"field": "id", "expected": "string_or_integer", "actual_type": type(value).__name__},
+        )
     # Match Go url.PathEscape for one URL path segment. Sub-delims and ':', '@'
     # are legal segment characters; slash, query and fragment delimiters escape.
-    return urllib.parse.quote(value, safe="$&+:=@")
+    return urllib.parse.quote(str(value), safe="$&+:=@")
 
 def _agent_resource_path(workspace_id: str, resource: str, tail_path: str) -> str:
     if not workspace_id:
@@ -14531,6 +14594,13 @@ def _agent_resource_path(workspace_id: str, resource: str, tail_path: str) -> st
 
 def _workflow_run_path(workflow_id: str, execution_id: str) -> tuple[str, str]:
     return _path_id(workflow_id), _path_id(execution_id)
+
+def _workflow_run_result_path(workflow_id: str, execution_id: str) -> tuple[str, str]:
+    if not workflow_id:
+        raise ErrWorkflowIDRequired
+    if not execution_id:
+        raise ErrExecutionIDRequired
+    return _workflow_run_path(workflow_id, execution_id)
 
 def _workflow_run_node_path(workflow_id: str, execution_id: str, node_key: str) -> tuple[str, str, str]:
     return _path_id(workflow_id), _path_id(execution_id), _path_id(node_key)

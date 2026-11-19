@@ -15,7 +15,7 @@ class WorkspaceModelHTTPContractTest(unittest.TestCase):
         self.enterContext(loopback_proxy_environment())
 
     def test_shared_http_contracts(self):
-        cases = json.loads(Path("testdata/workspace_model_http_contract.json").read_text())
+        cases = json.loads(Path("../go-sdk/testdata/workspace_model_http_contract.json").read_text())
         for scenario in cases:
             with self.subTest(scenario=scenario["name"]):
                 self._run_scenario(scenario)

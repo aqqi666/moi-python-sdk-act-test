@@ -4,7 +4,7 @@ package matrixflow.sdk.product;
 
 import "google/protobuf/struct.proto";
 
-option go_package = "github.com/matrixorigin/matrixflow/sdk/product-model/product";
+option go_package = "github.com/matrixorigin/moi-go-sdk/product";
 
 message AgentCardResult {
   string json = 1;

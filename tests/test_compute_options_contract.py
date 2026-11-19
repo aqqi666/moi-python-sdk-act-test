@@ -14,7 +14,7 @@ from loopback_http import loopback_proxy_environment
 class ComputeOptionsContractTest(unittest.TestCase):
     def test_requests_and_responses_match_shared_handler_contract(self):
         self.enterContext(loopback_proxy_environment())
-        path = pathlib.Path(__file__).resolve().parents[1] / "testdata" / "compute_options_contract.json"
+        path = pathlib.Path(__file__).resolve().parents[2] / "go-sdk" / "testdata" / "compute_options_contract.json"
         cases = json.loads(path.read_text(encoding="utf-8"))
         current = {}
         requests = []

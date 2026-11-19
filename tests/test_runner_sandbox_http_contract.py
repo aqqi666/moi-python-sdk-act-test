@@ -14,7 +14,7 @@ from loopback_http import loopback_proxy_environment
 class RunnerSandboxHTTPContractTest(unittest.TestCase):
     def test_public_requests_and_results_match_shared_go_contract(self):
         self.enterContext(loopback_proxy_environment())
-        cases = json.loads((Path(__file__).resolve().parents[1] / "testdata/runner_sandbox_http_contract.json").read_text())
+        cases = json.loads((Path(__file__).resolve().parents[2] / "go-sdk/testdata/runner_sandbox_http_contract.json").read_text())
         current, requests = {}, []
 
         class Handler(BaseHTTPRequestHandler):

@@ -6,7 +6,7 @@ from typing import Any
 import moi_product_sdk.client as sdk_client
 
 
-_FIXTURE_PATH = Path(__file__).resolve().parents[1] / "testdata" / "workflow_candidate_deploy_body.json"
+_FIXTURE_PATH = Path(__file__).resolve().parents[2] / "go-sdk" / "testdata" / "workflow_candidate_deploy_body.json"
 
 
 def _acceptance_data(

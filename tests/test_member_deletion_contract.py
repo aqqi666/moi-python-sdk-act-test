@@ -7,7 +7,7 @@ from unittest.mock import patch
 import moi_product_sdk as sdk
 
 
-_FIXTURE = pathlib.Path(__file__).resolve().parents[1] / "testdata" / "workspace_member_deletion_failed.json"
+_FIXTURE = pathlib.Path(__file__).resolve().parents[2] / "go-sdk" / "testdata" / "workspace_member_deletion_failed.json"
 
 
 class MemberDeletionContractTest(unittest.TestCase):

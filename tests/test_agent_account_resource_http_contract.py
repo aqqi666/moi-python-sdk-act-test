@@ -14,7 +14,7 @@ from loopback_http import loopback_proxy_environment
 class AgentAccountResourceHTTPContractTest(unittest.TestCase):
     def test_requests_and_responses_match_shared_handler_contract(self):
         self.enterContext(loopback_proxy_environment())
-        path = pathlib.Path(__file__).resolve().parents[1] / "testdata" / "agent_account_resource_http_contract.json"
+        path = pathlib.Path(__file__).resolve().parents[2] / "go-sdk" / "testdata" / "agent_account_resource_http_contract.json"
         cases = json.loads(path.read_text(encoding="utf-8"))
         current = {}
         observed = {}

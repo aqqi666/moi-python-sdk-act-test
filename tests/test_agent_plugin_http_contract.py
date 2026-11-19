@@ -13,7 +13,7 @@ from loopback_http import loopback_proxy_environment
 class AgentPluginHTTPContractTest(unittest.TestCase):
     def test_shared_http_contracts(self):
         self.enterContext(loopback_proxy_environment())
-        fixture = Path(__file__).resolve().parents[1] / "testdata/agent_plugin_http_contract.json"
+        fixture = Path(__file__).resolve().parents[2] / "go-sdk/testdata/agent_plugin_http_contract.json"
         for scenario in json.loads(fixture.read_text(encoding="utf-8")):
             with self.subTest(scenario=scenario["name"]):
                 self._run_scenario(scenario)
@@ -68,8 +68,6 @@ class AgentPluginHTTPContractTest(unittest.TestCase):
                 result = service.search_plugins(*options)
             elif operation == "describe-plugin-capability":
                 result = service.describe_plugin_capability(scenario["query"]["ref"][0])
-            elif operation == "read-plugin-skill":
-                result = service.read_plugin_skill(scenario["query"]["ref"][0], scenario["query"]["path"][0])
             elif operation == "list-plugin-releases":
                 result = service.list_plugin_releases(*options)
             elif operation == "get-plugin-release":
@@ -149,7 +147,6 @@ class AgentPluginHTTPContractTest(unittest.TestCase):
         message_type = {
             "search-plugins": sdk.PluginDiscoveryPage,
             "describe-plugin-capability": sdk.PluginCapabilityDescriptor,
-            "read-plugin-skill": sdk.PluginSkillContent,
             "list-plugin-releases": sdk.PluginPublicationList,
             "get-plugin-release": sdk.PluginRelease,
             "install-plugin": sdk.PluginInstallation,
