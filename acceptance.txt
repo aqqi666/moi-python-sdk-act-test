@@ -1,0 +1,1 @@
+{"purpose": "GitHub App local acceptance; no product source or package", "repository": "aqqi666/moi-python-sdk-act-test", "run": "app-acceptance-20261119T034723Z-b51c60"}
